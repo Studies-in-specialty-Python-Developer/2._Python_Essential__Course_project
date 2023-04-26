@@ -1,25 +1,71 @@
 """ Модуль описывает свойства и метода класса, который реализует игровую логику и функционал
-карточной игры BlackJack. Реализован только базовый функционал игры, без разновидностей правил """
+карточной игры BlackJack. Реализован только базовый функционал игры, без разновидностей правил
+и некоторых особенностей хода игры """
 
 import random
+
 from deck import Deck
-from player import Bot, Player, Dealer
-from const import MESSAGES
+from player import Bot, Player, Dealer, AbstractPlayer
+from const import MESSAGES, MAX_PLAYER_COUNT
 
 
 class Game:
-    max_player_count = 4
+    """ Абстрактный класс реализует базовую функциональность каждого игрока в BlackJack.
+    Класс служит предком для игроков Дилер (Dealer), Игрок (Player), игрок-бот (Bot)
+    Attributes:
+        players (list): список игроков, не считая дилера
+        player (Player): игрок-человек
+        player_pos (int): номер по порядку игрока-человека за столом
+        dealer (Dealer): бот-дилер
+        all_players_count (int): общее количество игроков, не считая дилера
+        deck (Deck): колода карт
+        max_bet (int): максимальная ставка
+        min_bet (int): минимальная ставка
+    Methods:
+        __init__(self):
+            инициализирует атрибуты значениями по умолчанию
+        _ask_starting(self, message: str) -> bool:
+            задает игроку вопрос о его (не)желании сыграть в BlackJack
+        _launching(self):
+            создает объекты игроков-ботов в заданном количестве, игрока-человека и генерирует его позицию
+            по порядку за игровым столом
+        ask_bet(self):
+            игроки делают ставки в пределах минимальной и максимальной суммы
+        first_descr(self):
+            реализует первую раздачу карт, всем игрокам дилер сдает по две карты, а себе берет одну
+        check_stop(player: AbstractPlayer) -> bool:
+            статический метод, который делает проверку на превышение набранных игроком очков
+            по сравнению с максимальным значением 21
+        ask_cards(self):
+            реализует процесс сдачи игроку дополнительных карт (после первой раздачи)
+        check_winner(self):
+            Делает проверку результата игры для каждого игрока и выдает соответствующее сообщение.
+            Подсчитывает выигрыш или проигрыш каждого игрока и оставшуюся сумму денег
+        play_with_dealer(self):
+            реализует выдачу дополнительных карт (после первой раздачи) дилером самому себе
+        print_all_players_cards(self):
+            показывает в консоли карты, находящиеся на руках у всех игроков и у дилера
+        print_all_players_money(self):
+            показывает в консоли оставшуюся сумму денег у каждого игрока
+        start_game(self):
+            Реализует процесс игры """
 
     def __init__(self):
+        """ Инициализирует атрибуты значениями по умолчанию """
         self.players = []
         self.player = None
         self.player_pos = None
         self.dealer = Dealer()
         self.all_players_count = 1
         self.deck = Deck()
-        self.max_bet, self.min_bet = 20, 0
+        self.min_bet, self.max_bet = 5, 20
 
-    def _ask_starting(self, message):
+    def _ask_starting(self, message: str) -> bool:
+        """ Задает игроку вопрос о его (не)желании сыграть в BlackJack
+        Arguments:
+            message (str): вопрос в виде строки
+        Returns:
+            bool - выбор игрока """
         while True:
             choice = input(message)
             if choice == 'n':
@@ -31,9 +77,11 @@ class Game:
                 return True
 
     def _launching(self):
+        """ Создает объекты игроков-ботов в заданном количестве и игрока-человека, генерирует его позицию
+         по порядку за игровым столом. Созданные объекты сохраняются в атрибутах класса """
         while True:
             bots_count = int(input('Hello, enter number of bots: '))
-            if bots_count <= self.max_player_count - 1:
+            if bots_count <= MAX_PLAYER_COUNT - 1:
                 break
         self.all_players_count = bots_count + 1
         for i in range(bots_count):
@@ -45,10 +93,12 @@ class Game:
         self.players.insert(self.player_pos, self.player)
 
     def ask_bet(self):
+        """ Игроки делают ставки в пределах минимальной и максимальной суммы """
         for player in self.players:
             player.change_bet(self.max_bet, self.min_bet)
 
     def first_descr(self):
+        """ Реализует первую раздачу карт, всем игрокам дилер сдает по две карты, а себе берет одну """
         for player in self.players:
             for _ in range(2):
                 card = self.deck.get_card()
@@ -58,18 +108,16 @@ class Game:
         self.dealer.take_card(card)
 
     @staticmethod
-    def check_stop(player):
+    def check_stop(player: AbstractPlayer) -> bool:
+        """ Производится проверка на превышение набранных игроком очков по сравнению с максимальным значением 21
+        Arguments:
+            player (AbstractPlayer): проверяемый игрок
+        Returns:
+            bool - набрал ли игрок более 21 очка """
         return player.full_points >= 21
 
-    def remove_player(self, player):
-        player.print_cards()
-        if isinstance(player, Player):
-            print('    You are fall!')
-        elif isinstance(player, Bot):
-            print(player.name, 'are fall!')
-        self.players.remove(player)
-
     def ask_cards(self):
+        """ Реализует процесс сдачи игроку дополнительных карт (после первой раздачи) """
         for player in self.players:
             if player.full_points < 21:
 
@@ -79,14 +127,14 @@ class Game:
 
                     is_stop = self.check_stop(player)
                     if is_stop:
-                        # if player.full_points > 21 or isinstance(player, Player):
-                        #     self.remove_player(player)
                         break
 
                     if isinstance(player, Player):
                         player.print_cards()
 
     def check_winner(self):
+        """ Производит проверку результата игры для каждого игрока и выдает соответствующее сообщение.
+        Подсчитывает выигрыш или проигрыш каждого игрока и оставшуюся сумму денег """
         if self.dealer.full_points > 21:
             # all win
             print('Dealer are fall! All players in game are win!')
@@ -113,21 +161,24 @@ class Game:
                         print('You lose!')
 
     def play_with_dealer(self):
+        """ Реализует выдачу дополнительных карт (после первой раздачи) дилером самому себе """
         while self.dealer.ask_card():
             card = self.deck.get_card()
             self.dealer.take_card(card)
 
     def print_all_players_cards(self):
+        """ Показывает в консоли карты, находящиеся на руках у всех игроков и у дилера """
         for player in self.players:
             player.print_cards()
         self.dealer.print_cards()
 
     def print_all_players_money(self):
+        """ Показывает в консоли оставшуюся сумму денег у каждого игрока """
         for player in self.players:
             player.print_money()
-        self.dealer.print_money()
 
     def start_game(self):
+        """ Реализует процесс игры """
 
         # generating data for starting
         self._launching()

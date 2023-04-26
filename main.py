@@ -4,9 +4,10 @@ from game import Game
 
 
 def main():
+    """ Основная функция, в которой инициализируется и запускается новая игра """
     game = Game()
     game.start_game()
-    print(game.player.money)
+    game.player.print_money()
 
 
 if __name__ == "__main__":

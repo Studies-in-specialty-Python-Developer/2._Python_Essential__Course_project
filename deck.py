@@ -6,7 +6,7 @@ from const import SUITS, RANKS, PRINTED
 
 
 class Card:
-    """ Класс реализует функциональность игральной карты
+    """ Класс реализует функциональность отдельной игральной карты
     Attributes:
         suit (str): масть
         rank (str): ранг (значение)
@@ -18,6 +18,7 @@ class Card:
     """
 
     def __init__(self, suit: str, rank: str, picture: str, points: int):
+        """ Инициализирует атрибуты заданными значениями """
         self.suit = suit
         self.rank = rank
         self.picture = picture
@@ -48,6 +49,9 @@ class Deck:
 
     @staticmethod
     def _generate_deck() -> list:
+        """ Возвращает новую колоду из 52 карт
+            Returns:
+                list - колода из 52 карт """
         cards = []
         for suit, rank in product(SUITS, RANKS):
             if rank.isdigit():
@@ -66,6 +70,9 @@ class Deck:
         return cards
 
     def get_card(self) -> Card:
+        """ Возвращает случайную карту и удаляет её из колоды
+            Returns:
+                Card - случайная карта """
         return self.cards.pop()
 
     def __len__(self):
