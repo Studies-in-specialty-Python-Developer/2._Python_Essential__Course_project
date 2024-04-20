@@ -1,4 +1,4 @@
-# 2._Python_Essential__Course_project__BlackJack_game
+# 3._Python_Essential__Course_project__BlackJack_game
 
 
 ### Описание
